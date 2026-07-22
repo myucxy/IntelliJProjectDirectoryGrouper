@@ -1,0 +1,11 @@
+.gradle/
+.kotlin/
+.intellijPlatform/
+.idea/
+build/
+config/
+out/
+verification-*/
+*.iws
+*.iml
+*.ipr

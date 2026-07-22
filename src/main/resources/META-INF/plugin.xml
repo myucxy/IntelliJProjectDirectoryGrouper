@@ -1,0 +1,66 @@
+<idea-plugin>
+    <id>dev.projectgroups.directory-grouper</id>
+    <name>Project Directory Grouper</name>
+    <vendor>Project Directory Grouper Contributors</vendor>
+
+    <description><![CDATA[
+        <p><b>English</b></p>
+        <p>Organizes recent projects by their direct parent directory in
+        <b>File | Recent Projects</b> and the main toolbar project widget.</p>
+        <p>The File menu keeps the native <b>Recent Projects</b> entry and shows shared parent
+        directories as flat titled sections. Projects without a matching sibling are collected
+        under <b>Other</b>.</p>
+        <p>The project widget keeps its project-row layout and shows each shared parent directory as
+        a flat section. Its bold section name is embedded in a matching rainbow-colored thin border.
+        Remaining projects are collected under the neutral <b>Other</b> section. Project icons,
+        names, paths, provider paths, and Git branches remain visible. If IntelliJ supplies no branch,
+        an optional background fallback reads and caches <code>.git/HEAD</code> without running a Git command.</p>
+        <p>Grouping and missing-branch fallback can be configured from
+        <b>Settings | Tools | Project Directory Grouper</b>, which is also available from the settings
+        entry in the project widget. Disabling grouping restores the platform project lists.
+        Existing Welcome Screen groups are not modified.</p>
+
+        <p><b>中文</b></p>
+        <p>在<b>文件 | 最近的项目</b>和主工具栏的项目微件中，按项目的直接父目录整理最近项目。</p>
+        <p>文件菜单保留原生的<b>最近的项目</b>入口，将共享父目录显示为带标题的平铺分区；
+        没有同目录项目的单项统一归入<b>其他</b>。</p>
+        <p>项目微件保留项目行样式，将共享父目录显示为平铺分区。加粗组名嵌入顶部细边框，
+        每个父目录组使用组名与边框一致的彩虹色；其余项目归入中性灰色的<b>其他</b>分区。
+        项目图标、名称、路径、提供方路径和 Git 分支仍会显示。IntelliJ 未提供分支时，
+        可选的后台回读功能会读取并缓存 <code>.git/HEAD</code>，不会执行 Git 命令。</p>
+        <p>可在<b>设置 | 工具 | 项目目录分组</b>中分别配置分组和分支回读，项目微件底部也保留设置入口。
+        关闭分组后恢复平台原始项目列表，不会修改欢迎页中的现有项目组。</p>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <resource-bundle>messages.DirectoryGrouperBundle</resource-bundle>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationService
+                serviceImplementation="dev.projectgroups.directorygrouper.settings.DirectoryGrouperSettings"/>
+        <applicationService
+                serviceImplementation="dev.projectgroups.directorygrouper.platform.PlatformCompatibility"/>
+        <applicationService
+                serviceImplementation="dev.projectgroups.directorygrouper.lifecycle.ActionReplacementService"/>
+        <postStartupActivity
+                implementation="dev.projectgroups.directorygrouper.lifecycle.DirectoryGrouperStartupActivity"/>
+        <applicationConfigurable
+                parentId="tools"
+                id="dev.projectgroups.directory-grouper.settings"
+                displayName="项目目录分组"
+                instance="dev.projectgroups.directorygrouper.settings.DirectoryGrouperConfigurable"/>
+    </extensions>
+
+    <applicationListeners>
+        <listener
+                class="dev.projectgroups.directorygrouper.lifecycle.DirectoryGrouperAppLifecycleListener"
+                topic="com.intellij.ide.AppLifecycleListener"/>
+    </applicationListeners>
+
+    <actions>
+        <action id="dev.projectgroups.directory-grouper.openSettings"
+                class="dev.projectgroups.directorygrouper.actions.OpenDirectoryGrouperSettingsAction">
+            <add-to-group group-id="ProjectWidget.Actions" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>
