@@ -5,34 +5,46 @@ import kotlin.test.assertEquals
 
 class ProjectWidgetDisplayLinesTest {
     @Test
-    fun `branch is appended to project path when present`() {
+    fun `branch remains separate from project path`() {
         assertEquals(
-            listOf("shop", "provider/work", "C:\\work\\shop  Git: main"),
-            projectWidgetDisplayLines("shop", "provider/work", "C:\\work\\shop", "main"),
+            ProjectWidgetDisplayDetails(
+                textLines = listOf("shop", "provider/work", "C:\\work\\shop"),
+                branchName = "main",
+            ),
+            projectWidgetDisplayDetails("shop", "provider/work", "C:\\work\\shop", "main"),
         )
     }
 
     @Test
-    fun `branch is appended to provider path when project path is absent`() {
+    fun `branch remains separate when only provider path is present`() {
         assertEquals(
-            listOf("shop", "provider/work  Git: develop"),
-            projectWidgetDisplayLines("shop", "provider/work", null, "develop"),
+            ProjectWidgetDisplayDetails(
+                textLines = listOf("shop", "provider/work"),
+                branchName = "develop",
+            ),
+            projectWidgetDisplayDetails("shop", "provider/work", null, "develop"),
         )
     }
 
     @Test
-    fun `branch is appended to project name when no path is displayed`() {
+    fun `branch remains separate when no path is displayed`() {
         assertEquals(
-            listOf("shop  Git: feature/widget"),
-            projectWidgetDisplayLines("shop", null, null, "feature/widget"),
+            ProjectWidgetDisplayDetails(
+                textLines = listOf("shop"),
+                branchName = "feature/widget",
+            ),
+            projectWidgetDisplayDetails("shop", null, null, "feature/widget"),
         )
     }
 
     @Test
-    fun `missing or blank branch leaves existing lines unchanged`() {
-        val expected = listOf("shop", "C:\\work\\shop")
+    fun `missing or blank branch omits branch line`() {
+        val expected = ProjectWidgetDisplayDetails(
+            textLines = listOf("shop", "C:\\work\\shop"),
+            branchName = null,
+        )
 
-        assertEquals(expected, projectWidgetDisplayLines("shop", null, "C:\\work\\shop", null))
-        assertEquals(expected, projectWidgetDisplayLines("shop", null, "C:\\work\\shop", "  "))
+        assertEquals(expected, projectWidgetDisplayDetails("shop", null, "C:\\work\\shop", null))
+        assertEquals(expected, projectWidgetDisplayDetails("shop", null, "C:\\work\\shop", "  "))
     }
 }

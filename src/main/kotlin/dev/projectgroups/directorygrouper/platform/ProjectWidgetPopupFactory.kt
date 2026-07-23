@@ -1,5 +1,6 @@
 package dev.projectgroups.directorygrouper.platform
 
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
@@ -24,6 +25,7 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.Graphics
 import java.util.IdentityHashMap
+import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JList
@@ -59,7 +61,10 @@ class ProjectWidgetPopupFactory {
         }
         branchNames.loading?.whenComplete { _, _ ->
             ApplicationManager.getApplication().invokeLater {
-                if (popup.content.isShowing) popup.content.repaint()
+                if (popup.content.isShowing) {
+                    popup.content.revalidate()
+                    popup.content.repaint()
+                }
             }
         }
         return popup
@@ -100,7 +105,7 @@ class ProjectWidgetPopupFactory {
             }
             val background = if (isSelected) list.selectionBackground else list.background
             val branchName = branchNames.get(value.action, projectAction.branchName)
-            val displayLines = projectWidgetDisplayLines(
+            val displayDetails = projectWidgetDisplayDetails(
                 projectName = projectAction.projectNameToDisplay,
                 providerPath = projectAction.providerPathToDisplay,
                 projectPath = projectAction.projectPathToDisplay,
@@ -109,12 +114,24 @@ class ProjectWidgetPopupFactory {
             val details = JPanel().apply {
                 layout = BoxLayout(this, BoxLayout.Y_AXIS)
                 isOpaque = false
-                add(JBLabel(displayLines.first()).apply {
+                add(JBLabel(displayDetails.textLines.first()).apply {
                     font = list.font
                     this.foreground = foreground
                     alignmentX = Component.LEFT_ALIGNMENT
                 })
-                displayLines.drop(1).forEach { addSecondaryLine(it, secondaryForeground) }
+                displayDetails.textLines.drop(1).forEach { addSecondaryLine(it, secondaryForeground) }
+                displayDetails.branchName?.let { resolvedBranchName ->
+                    add(
+                        JPanel().apply {
+                            layout = BoxLayout(this, BoxLayout.X_AXIS)
+                            isOpaque = false
+                            alignmentX = Component.LEFT_ALIGNMENT
+                            add(JBLabel(AllIcons.Vcs.Branch))
+                            add(Box.createHorizontalStrut(JBUI.scale(4)))
+                            add(secondaryLabel(resolvedBranchName, secondaryForeground))
+                        },
+                    )
+                }
             }
             val projectRow = JPanel(BorderLayout(JBUI.scale(8), 0)).apply {
                 isOpaque = true
@@ -336,14 +353,17 @@ class ProjectWidgetPopupFactory {
     }
 }
 
-internal fun projectWidgetDisplayLines(
+internal data class ProjectWidgetDisplayDetails(
+    val textLines: List<String>,
+    val branchName: String?,
+)
+
+internal fun projectWidgetDisplayDetails(
     projectName: String,
     providerPath: String?,
     projectPath: String?,
     branchName: String?,
-): List<String> {
-    val lines = listOfNotNull(projectName, providerPath, projectPath).toMutableList()
-    val branch = branchName?.takeUnless(String::isBlank) ?: return lines
-    lines[lines.lastIndex] = "${lines.last()}  Git: $branch"
-    return lines
-}
+): ProjectWidgetDisplayDetails = ProjectWidgetDisplayDetails(
+    textLines = listOfNotNull(projectName, providerPath, projectPath),
+    branchName = branchName?.takeUnless(String::isBlank),
+)
